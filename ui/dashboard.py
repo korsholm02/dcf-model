@@ -25,56 +25,36 @@ st.set_page_config(
     layout="wide",
 )
 
-# Initialize session state
-if "initialized" not in st.session_state:
-    st.session_state.initialized = False
-if "ticker" not in st.session_state:
-    st.session_state.ticker = "ITRI"
-if "data" not in st.session_state:
-    st.session_state.data = None
-if "parsed" not in st.session_state:
-    st.session_state.parsed = None
-if "metrics" not in st.session_state:
-    st.session_state.metrics = None
-
+@st.cache_data(show_spinner=False)
 def load_ticker_data(ticker):
-    """Load and parse financial data for a ticker."""
+    """Load and parse financial data for a ticker. Cached for performance."""
     try:
         data = fetch_financials(ticker)
         if not data:
-            return None, None, None
+            return None, None, None, "Kunne ikke hente data"
 
         parsed = parse_financials(data)
         if not parsed:
-            return None, None, None
+            return None, None, None, "Kunne ikke parse data"
 
         metrics = calculate_historical_metrics(parsed)
-        return data, parsed, metrics
+        return data, parsed, metrics, None
     except Exception as e:
-        st.error(f"Fejl ved hentning af data: {str(e)}")
-        return None, None, None
+        return None, None, None, str(e)
 
 st.title("📈 DCF Analyzer")
 st.markdown("Professionel DCF-værdiansættelse til investorer")
 
 # Sidebar - Input
 st.sidebar.header("Virksomhed")
-ticker_input = st.sidebar.text_input("Ticker", value=st.session_state.ticker, help="F.eks. ITRI, NOVO-B.CO, MAERSK-B.CO")
+ticker_input = st.sidebar.text_input("Ticker", value="ITRI", help="F.eks. ITRI, NOVO-B.CO, MAERSK-B.CO")
 
-# Reload data if ticker changed
-if ticker_input != st.session_state.ticker or not st.session_state.initialized:
-    st.session_state.ticker = ticker_input
-    st.session_state.initialized = True
-    data, parsed, metrics = load_ticker_data(ticker_input)
-    st.session_state.data = data
-    st.session_state.parsed = parsed
-    st.session_state.metrics = metrics
-    st.rerun()
+# Load data (cached)
+data, parsed, metrics, error = load_ticker_data(ticker_input)
 
-# Get cached data
-data = st.session_state.data
-parsed = st.session_state.parsed
-metrics = st.session_state.metrics
+if error:
+    st.error(f"Fejl: {error}")
+    st.stop()
 
 if data and parsed and metrics:
     # Company info
@@ -86,6 +66,9 @@ if data and parsed and metrics:
     total_debt = parsed["total_debt"][0]
     cash = parsed["cash"][0]
     base_revenue = parsed["revenue"][0]
+else:
+    st.info("👈 Indtast en ticker i sidebar for at starte analysen")
+    st.stop()
 
     # Top row - Key metrics
     col1, col2, col3, col4 = st.columns(4)
