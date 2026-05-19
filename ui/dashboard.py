@@ -6,8 +6,11 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
+import os
 import sys
-sys.path.insert(0, "/Users/jacobkorsholm/dcf-model")
+
+# Add project root to path for Streamlit Cloud compatibility
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from data.fetcher import fetch_financials, get_current_price
 from data.parser import parse_financials, calculate_historical_metrics
