@@ -109,12 +109,6 @@ with tab1:
         st.subheader("Terminal Værdi")
         terminal_growth = st.slider("Terminal vækstrate", 0.0, 0.04, st.session_state.tg, 0.005, key="tg")
 
-    # Update session state when sliders change
-    st.session_state.rf = risk_free
-    st.session_state.mrp = market_premium
-    st.session_state.cod = cost_of_debt
-    st.session_state.tg = terminal_growth
-
     wacc = calculate_wacc(
         market_cap=market_cap, total_debt=total_debt, beta=beta,
         risk_free_rate=risk_free, market_risk_premium=market_premium,
@@ -208,11 +202,6 @@ with tab3:
         terminal_growth_tab3 = st.slider("Terminal vækstrate", 0.0, 0.04, st.session_state.tg_t3, 0.005, key="tg_t3")
 
     # Update session state when sliders change
-    st.session_state.rf_t3 = risk_free_tab3
-    st.session_state.mrp_t3 = market_premium_tab3
-    st.session_state.cod_t3 = cost_of_debt_tab3
-    st.session_state.tg_t3 = terminal_growth_tab3
-
     wacc_tab3 = calculate_wacc(
         market_cap=market_cap, total_debt=total_debt, beta=beta,
         risk_free_rate=risk_free_tab3, market_risk_premium=market_premium_tab3,
@@ -245,7 +234,6 @@ with tab3:
     col1, col2, col3 = st.columns(3)
     with col1:
         tax_rate = st.number_input("Skatterate", 0.0, 0.4, st.session_state.tax_t3, 0.01, key="tax_t3")
-        st.session_state.tax_t3 = tax_rate
     with col2:
         dep_pct = st.number_input("D&A % af Revenue", 0.0, 0.2,
                                    float(default_assumptions["dep_pct"][0]), 0.01, key="dep_t3")
