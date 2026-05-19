@@ -18,37 +18,20 @@ from models.wacc import calculate_wacc
 from models.valuation import full_dcf_valuation, sensitivity_analysis
 
 
-# Session state initialization
-if "initialized" not in st.session_state:
-    st.session_state.initialized = True
-    st.session_state.ticker = "ITRI"
-    # Tab 1 defaults
-    st.session_state.rf = 0.04
-    st.session_state.mrp = 0.055
-    st.session_state.cod = 0.05
-    st.session_state.tg = 0.02
-    # Tab 3 defaults
-    st.session_state.rf_t3 = 0.04
-    st.session_state.mrp_t3 = 0.055
-    st.session_state.cod_t3 = 0.05
-    st.session_state.tg_t3 = 0.02
-    st.session_state.tax_t3 = 0.25
-
-
-@st.cache_data(show_spinner=True)
+@st.cache_data(show_spinner=False)
 def load_ticker_data(ticker):
     """Load and parse financial data for a ticker. Cached for performance."""
     try:
         data = fetch_financials(ticker)
         if not data:
-            return None, None, None, f"Kunne ikke hente data for {ticker}. Tjek tickeren."
+            return None, None, None, "Kunne ikke hente data"
         parsed = parse_financials(data)
         if not parsed:
-            return None, None, None, "Kunne ikke parse data - mangler regnskaber"
+            return None, None, None, "Kunne ikke parse data"
         metrics = calculate_historical_metrics(parsed)
         return data, parsed, metrics, None
     except Exception as e:
-        return None, None, None, f"Fejl: {str(e)}"
+        return None, None, None, str(e)
 
 
 st.set_page_config(page_title="DCF Analyzer", page_icon="📈", layout="wide")
@@ -57,11 +40,7 @@ st.markdown("Professionel DCF-værdiansættelse til investorer")
 
 # Sidebar
 st.sidebar.header("Virksomhed")
-ticker_input = st.sidebar.text_input("Ticker", value=st.session_state.ticker, help="F.eks. ITRI, NOVO-B.CO, MAERSK-B.CO", key="ticker_input_side")
-
-# Update session state when ticker changes
-if ticker_input != st.session_state.ticker:
-    st.session_state.ticker = ticker_input
+ticker_input = st.sidebar.text_input("Ticker", value="ITRI", help="F.eks. ITRI, NOVO-B.CO, MAERSK-B.CO")
 
 # Load data
 data, parsed, metrics, error = load_ticker_data(ticker_input)
@@ -101,13 +80,13 @@ with tab1:
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("WACC Parametre")
-        risk_free = st.slider("Risikofri rente", 0.01, 0.10, st.session_state.rf, 0.005, key="rf")
-        market_premium = st.slider("Markedsrisikopræmie", 0.03, 0.08, st.session_state.mrp, 0.005, key="mrp")
-        cost_of_debt = st.slider("Gældsomkostning (før skat)", 0.02, 0.15, st.session_state.cod, 0.005, key="cod")
+        risk_free = st.slider("Risikofri rente", 0.01, 0.10, 0.04, 0.005, key="rf")
+        market_premium = st.slider("Markedsrisikopræmie", 0.03, 0.08, 0.055, 0.005, key="mrp")
+        cost_of_debt = st.slider("Gældsomkostning (før skat)", 0.02, 0.15, 0.05, 0.005, key="cod")
 
     with col2:
         st.subheader("Terminal Værdi")
-        terminal_growth = st.slider("Terminal vækstrate", 0.0, 0.04, st.session_state.tg, 0.005, key="tg")
+        terminal_growth = st.slider("Terminal vækstrate", 0.0, 0.04, 0.02, 0.005, key="tg")
 
     wacc = calculate_wacc(
         market_cap=market_cap, total_debt=total_debt, beta=beta,
@@ -194,14 +173,13 @@ with tab3:
     col_w1, col_w2 = st.columns(2)
     with col_w1:
         st.subheader("WACC")
-        risk_free_tab3 = st.slider("Risikofri rente", 0.01, 0.10, st.session_state.rf_t3, 0.005, key="rf_t3")
-        market_premium_tab3 = st.slider("Markedsrisikopræmie", 0.03, 0.08, st.session_state.mrp_t3, 0.005, key="mrp_t3")
-        cost_of_debt_tab3 = st.slider("Gældsomkostning", 0.02, 0.15, st.session_state.cod_t3, 0.005, key="cod_t3")
+        risk_free_tab3 = st.slider("Risikofri rente", 0.01, 0.10, 0.04, 0.005, key="rf_t3")
+        market_premium_tab3 = st.slider("Markedsrisikopræmie", 0.03, 0.08, 0.055, 0.005, key="mrp_t3")
+        cost_of_debt_tab3 = st.slider("Gældsomkostning", 0.02, 0.15, 0.05, 0.005, key="cod_t3")
     with col_w2:
         st.subheader("Terminal")
-        terminal_growth_tab3 = st.slider("Terminal vækstrate", 0.0, 0.04, st.session_state.tg_t3, 0.005, key="tg_t3")
+        terminal_growth_tab3 = st.slider("Terminal vækstrate", 0.0, 0.04, 0.02, 0.005, key="tg_t3")
 
-    # Update session state when sliders change
     wacc_tab3 = calculate_wacc(
         market_cap=market_cap, total_debt=total_debt, beta=beta,
         risk_free_rate=risk_free_tab3, market_risk_premium=market_premium_tab3,
@@ -233,7 +211,7 @@ with tab3:
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        tax_rate = st.number_input("Skatterate", 0.0, 0.4, st.session_state.tax_t3, 0.01, key="tax_t3")
+        tax_rate = st.number_input("Skatterate", 0.0, 0.4, 0.25, 0.01, key="tax_t3")
     with col2:
         dep_pct = st.number_input("D&A % af Revenue", 0.0, 0.2,
                                    float(default_assumptions["dep_pct"][0]), 0.01, key="dep_t3")
