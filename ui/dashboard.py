@@ -5,17 +5,16 @@ Professional investor interface for quick valuation of any company.
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
 import os
 import sys
 
 # Add project root to path for Streamlit Cloud compatibility
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from data.fetcher import fetch_financials, get_current_price
+from data.fetcher import fetch_financials
 from data.parser import parse_financials, calculate_historical_metrics
 from budget.defaults import generate_default_assumptions, get_scenario_assumptions
-from models.cashflow import project_fcf, calculate_terminal_value
+from models.cashflow import project_fcf
 from models.wacc import calculate_wacc
 from models.valuation import full_dcf_valuation, sensitivity_analysis
 
