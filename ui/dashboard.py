@@ -18,20 +18,20 @@ from models.wacc import calculate_wacc
 from models.valuation import full_dcf_valuation, sensitivity_analysis
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=True)
 def load_ticker_data(ticker):
     """Load and parse financial data for a ticker. Cached for performance."""
     try:
         data = fetch_financials(ticker)
         if not data:
-            return None, None, None, "Kunne ikke hente data"
+            return None, None, None, f"Kunne ikke hente data for {ticker}. Tjek tickeren."
         parsed = parse_financials(data)
         if not parsed:
-            return None, None, None, "Kunne ikke parse data"
+            return None, None, None, "Kunne ikke parse data - mangler regnskaber"
         metrics = calculate_historical_metrics(parsed)
         return data, parsed, metrics, None
     except Exception as e:
-        return None, None, None, str(e)
+        return None, None, None, f"Fejl: {str(e)}"
 
 
 st.set_page_config(page_title="DCF Analyzer", page_icon="📈", layout="wide")
